@@ -1,0 +1,37 @@
+@{column-padding}   :   6px;
+
+.row                {
+  display           :   flex;
+  justify-content   :   space-around;
+  flex-flow         :   row wrap;
+}
+
+.column             {
+  margin            :   auto;
+  word-wrap         :   break-word;
+  padding           :   @{column-padding};
+  box-sizing        :   padding-box;
+}
+
+.scaffolding (@counter: 100, @step: 5) when (@counter > 0) {
+
+  .column-@{counter} {
+    .column();
+    flex              :   1 calc(@counter~"% - " @column-padding ~")";
+
+  }
+;
+  .scaffolding(@counter - @step);
+}
+
+.scaffolding();
+
+@i: 0..100...5;
+
+@i(0..100...5) {
+  column-@{i} {
+    .column();
+    flex :  1 calc({ i }% - { column-padding });
+
+  }
+}

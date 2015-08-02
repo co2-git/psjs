@@ -1,0 +1,26 @@
+{
+  "name": "psjs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "transpile": "babel app/ --modules common --stage 1 --out-dir dist;",
+    "hot-transpile": "babel app/ --watch --modules common --stage 1 --out-dir dist;",
+    "build": "browserify dist/components/app.js -o dist/js/bundle.js",
+    "watch": "watchify dist/components/app.js -o dist/js/bundle.js",
+    "css" : "js4 $PWD/assets/css/index.js > $PWD/assets/css/index.css",
+    "start": "node dist/bin/start.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.13.0",
+    "react": "^0.13.3",
+    "socket.io": "^1.3.5"
+  },
+  "devDependencies": {
+    "babel": "^5.8.20",
+    "babelify": "^6.1.2"
+  }
+}
