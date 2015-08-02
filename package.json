@@ -22,5 +22,8 @@
   "devDependencies": {
     "babel": "^5.8.20",
     "babelify": "^6.1.2"
+  },
+  "bin": {
+    "psjs" : "npm start"
   }
 }
