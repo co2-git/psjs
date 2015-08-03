@@ -101,6 +101,8 @@ var SocketAPI = (function (_EventEmitter) {
       var _this2 = this;
 
       this.poller = setInterval(function () {
+        console.log('polling');
+
         // free mem
         _this2.sockets.forEach(function (socket) {
           return socket.emit('free mem', _os2['default'].freemem());

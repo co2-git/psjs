@@ -1,4 +1,45 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/home/francois/Dev/psjs/dist/components/app.js":[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/home/francois/Dev/psjs/dist/app.js":[function(require,module,exports){
+'use strict';
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _componentsApp = require('./components/app');
+
+var _componentsApp2 = _interopRequireDefault(_componentsApp);
+
+window.React = _react2['default'];
+
+_react2['default'].render(_react2['default'].createElement(_componentsApp2['default'], null), window.document.getElementById('main'));
+
+window.socket = io.connect('http://localhost:2007');
+
+window.socket.on('ps', function (ps) {
+
+  ps.sort(function (a, b) {
+    if (+a.pid > +b.pid) {
+      return 1;
+    }
+    if (+a.pid < +b.pid) {
+      return -1;
+    }
+    return 0;
+  });
+
+  _react2['default'].render(_react2['default'].createElement(_componentsApp2['default'], { processes: ps }), window.document.getElementById('main'));
+});
+
+window.socket.on('self', function (ps) {
+  window.pid = ps;
+});
+
+window.socket.on('total mem', function (mem) {
+  window.totalMem = mem;
+});
+},{"./components/app":"/home/francois/Dev/psjs/dist/components/app.js","react":"/home/francois/Dev/psjs/node_modules/react/react.js"}],"/home/francois/Dev/psjs/dist/components/app.js":[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -25,9 +66,9 @@ var _processRow = require('./process-row');
 
 var _processRow2 = _interopRequireDefault(_processRow);
 
-var _memory = require('./memory');
+var _topBar = require('./top-bar');
 
-var _memory2 = _interopRequireDefault(_memory);
+var _topBar2 = _interopRequireDefault(_topBar);
 
 var App = (function (_React$Component) {
   _inherits(App, _React$Component);
@@ -86,73 +127,53 @@ var App = (function (_React$Component) {
       var processes = this.applyFilters();
 
       return _react2['default'].createElement(
-        'html',
+        'section',
         null,
-        _react2['default'].createElement('meta', { charSet: 'utf-8' }),
+        _react2['default'].createElement(_topBar2['default'], { processes: processes }),
         _react2['default'].createElement(
-          'title',
+          'header',
           null,
-          'ps|js'
-        ),
-        _react2['default'].createElement('link', { rel: 'stylesheet', type: 'text/css', href: '/assets/css/index.css' }),
-        _react2['default'].createElement('link', { rel: 'stylesheet', type: 'text/css', href: '/assets/bower_components/font-awesome/css/font-awesome.min.css' }),
-        _react2['default'].createElement(
-          'section',
-          { role: 'main' },
           _react2['default'].createElement(
-            'header',
+            'form',
             null,
-            _react2['default'].createElement(
-              'h1',
-              null,
-              _react2['default'].createElement(
-                'small',
-                null,
-                processes.length
-              ),
-              _react2['default'].createElement(
-                'span',
-                null,
-                ' Processes'
-              )
-            ),
-            _react2['default'].createElement(_memory2['default'], null),
-            _react2['default'].createElement(
-              'form',
-              null,
-              _react2['default'].createElement('input', {
-                ref: 'cmdFilter',
-                type: 'text',
-                placeholder: 'Search command',
-                onKeyUp: this.filterByCmd.bind(this)
-              }),
-              _react2['default'].createElement(
-                'button',
-                null,
-                _react2['default'].createElement('i', { className: 'fa fa-search' })
-              )
-            )
-          ),
-          _react2['default'].createElement(
-            'section',
-            null,
-            _react2['default'].createElement(_processRow2['default'], { pid: 'PID', cmd: 'Command', mem: 'Memory' }),
-            processes.filter(function (ps) {
-              return ps.pid === window.pid;
-            }).map(function (ps) {
-              return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps));
+            _react2['default'].createElement('input', {
+              ref: 'cmdFilter',
+              type: 'text',
+              placeholder: 'Search command',
+              onKeyUp: this.filterByCmd.bind(this)
             }),
-            processes.filter(function (ps) {
-              return ps.pid !== window.pid;
-            }).filter(function (ps) {
-              return ps.state === 'R' || ps.state === 'S';
-            }).map(function (ps) {
-              return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps));
-            })
+            _react2['default'].createElement(
+              'button',
+              null,
+              _react2['default'].createElement('i', { className: 'fa fa-search' })
+            )
           )
         ),
-        _react2['default'].createElement('script', { src: '/socket.io/socket.io.js' }),
-        _react2['default'].createElement('script', { src: '/bundle.js' })
+        _react2['default'].createElement(
+          'section',
+          null,
+          _react2['default'].createElement(_processRow2['default'], { pid: 'PID', cmd: 'Command', mem: 'Memory' }),
+          processes.filter(function (ps) {
+            return ps.pid === window.pid;
+          }).map(function (ps) {
+            return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps));
+          }),
+          processes.filter(function (ps) {
+            return ps.pid !== window.pid;
+          }).filter(function (ps) {
+            return ps.state === 'R' || ps.state === 'S';
+          }).sort(function (a, b) {
+            if (parseInt(a.mem) > parseInt(b.mem)) {
+              return 1;
+            }
+            if (parseInt(a.mem) < parseInt(b.mem)) {
+              return -1;
+            }
+            return 0;
+          }).map(function (ps) {
+            return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps));
+          })
+        )
       );
     }
   }]);
@@ -161,160 +182,8 @@ var App = (function (_React$Component) {
 })(_react2['default'].Component);
 
 exports['default'] = App;
-
-if (typeof window !== 'undefined') {
-  window.React = _react2['default'];
-
-  _react2['default'].render(_react2['default'].createElement(App, null), window.document);
-
-  window.socket = io.connect();
-
-  window.socket.on('ps', function (ps) {
-
-    ps.sort(function (a, b) {
-      if (+a.pid > +b.pid) {
-        return 1;
-      }
-      if (+a.pid < +b.pid) {
-        return -1;
-      }
-      return 0;
-    });
-
-    _react2['default'].render(_react2['default'].createElement(App, { processes: ps }), window.document);
-  });
-
-  window.socket.on('self', function (ps) {
-    window.pid = ps;
-  });
-
-  window.socket.on('total mem', function (mem) {
-    window.totalMem = mem;
-  });
-}
 module.exports = exports['default'];
-},{"./memory":"/home/francois/Dev/psjs/dist/components/memory.js","./process-row":"/home/francois/Dev/psjs/dist/components/process-row.js","react":"/home/francois/Dev/psjs/node_modules/react/react.js"}],"/home/francois/Dev/psjs/dist/components/memory.js":[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var _react = require('react');
-
-var _react2 = _interopRequireDefault(_react);
-
-var Memory = (function (_React$Component) {
-  _inherits(Memory, _React$Component);
-
-  function Memory(props) {
-    _classCallCheck(this, Memory);
-
-    _get(Object.getPrototypeOf(Memory.prototype), 'constructor', this).call(this, props);
-
-    this.state = {
-      totalMem: 0,
-      freeMem: 0
-    };
-
-    this.setComponent();
-  }
-
-  _createClass(Memory, [{
-    key: 'setComponent',
-    value: function setComponent() {
-      var _this = this;
-
-      if (typeof window !== 'undefined') {
-        if (!window.socket) {
-          return this.waitForSocket = window.setInterval(function () {
-            if (window.socket) {
-              window.clearInterval(_this.waitForSocket);
-              _this.setComponent();
-            }
-          }, 1000);
-        }
-
-        if (window.totalMem) {
-          this.setState({ totalMem: window.totalMem });
-        } else {
-          window.socket.on('total mem', function (totalMem) {
-            _this.setState({ totalMem: totalMem });
-          });
-        }
-
-        window.socket.on('free mem', function (freeMem) {
-          _this.setState({ freeMem: freeMem });
-        });
-      }
-    }
-  }, {
-    key: 'memUsed',
-    value: function memUsed() {
-      var width = this.state.freeMem / this.state.totalMem * 100;
-
-      var background = 'transparent';
-
-      if (width > 0 && width < 40) {
-        background = 'green';
-      } else if (width >= 40 && width < 80) {
-        background = 'orange';
-      } else if (width >= 80) {
-        background = 'red';
-      }
-
-      return { width: width + '%', background: background };
-    }
-  }, {
-    key: 'render',
-    value: function render() {
-      var memUsed = this.memUsed();
-      var width = parseInt(memUsed.width);
-      var percent = undefined;
-
-      if (!isNaN(width)) {
-        percent = width.toFixed(2) + '%';
-      }
-
-      return _react2['default'].createElement(
-        'section',
-        null,
-        _react2['default'].createElement(
-          'h2',
-          null,
-          'Memory ',
-          this.state.totalMem
-        ),
-        _react2['default'].createElement(
-          'div',
-          { className: 'memory-bar' },
-          _react2['default'].createElement('div', { className: 'memory-used', style: memUsed }),
-          _react2['default'].createElement(
-            'div',
-            { className: 'memory-percent' },
-            percent
-          )
-        )
-      );
-    }
-  }]);
-
-  return Memory;
-})(_react2['default'].Component);
-
-exports['default'] = Memory;
-module.exports = exports['default'];
-},{"react":"/home/francois/Dev/psjs/node_modules/react/react.js"}],"/home/francois/Dev/psjs/dist/components/process-row.js":[function(require,module,exports){
+},{"./process-row":"/home/francois/Dev/psjs/dist/components/process-row.js","./top-bar":"/home/francois/Dev/psjs/dist/components/top-bar.js","react":"/home/francois/Dev/psjs/node_modules/react/react.js"}],"/home/francois/Dev/psjs/dist/components/process-row.js":[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -412,7 +281,205 @@ var ProcessRow = (function (_React$Component) {
 
 exports['default'] = ProcessRow;
 module.exports = exports['default'];
-},{"react":"/home/francois/Dev/psjs/node_modules/react/react.js"}],"/home/francois/Dev/psjs/node_modules/react/lib/AutoFocusMixin.js":[function(require,module,exports){
+},{"react":"/home/francois/Dev/psjs/node_modules/react/react.js"}],"/home/francois/Dev/psjs/dist/components/progress-bar.js":[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var i = 0;
+
+var ProgressBar = (function (_React$Component) {
+  _inherits(ProgressBar, _React$Component);
+
+  function ProgressBar() {
+    _classCallCheck(this, ProgressBar);
+
+    _get(Object.getPrototypeOf(ProgressBar.prototype), 'constructor', this).apply(this, arguments);
+  }
+
+  _createClass(ProgressBar, [{
+    key: 'render',
+    value: function render() {
+      var width = this.props.current / this.props.goal * 100;
+
+      width = parseInt(width);
+      var percent = undefined;
+      var background = 'transparent';
+
+      if (!isNaN(width)) {
+        percent = width.toFixed(2) + '%';
+
+        if (width > 0 && width < 40) {
+          background = 'green';
+        } else if (width >= 40 && width < 80) {
+          background = 'orange';
+        } else if (width >= 80) {
+          background = 'red';
+        }
+      }
+
+      i++;
+
+      if (i < 10) {
+        console.log({ props: this.props, width: width });
+      }
+
+      return _react2['default'].createElement(
+        'div',
+        { className: 'progress_bar' },
+        _react2['default'].createElement('div', {
+          className: 'progress_bar-percent',
+          style: {
+            width: width + '%', background: background
+          } }),
+        _react2['default'].createElement(
+          'div',
+          { className: 'progress_bar-label' },
+          width + '%'
+        )
+      );
+    }
+  }]);
+
+  return ProgressBar;
+})(_react2['default'].Component);
+
+exports['default'] = ProgressBar;
+module.exports = exports['default'];
+},{"react":"/home/francois/Dev/psjs/node_modules/react/react.js"}],"/home/francois/Dev/psjs/dist/components/top-bar.js":[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _progressBar = require('./progress-bar');
+
+var _progressBar2 = _interopRequireDefault(_progressBar);
+
+var TopBar = (function (_React$Component) {
+  _inherits(TopBar, _React$Component);
+
+  function TopBar(props) {
+    _classCallCheck(this, TopBar);
+
+    _get(Object.getPrototypeOf(TopBar.prototype), 'constructor', this).call(this, props);
+
+    this.state = {
+      totalMem: 0,
+      freeMem: 0
+    };
+
+    this.setComponent();
+  }
+
+  _createClass(TopBar, [{
+    key: 'setComponent',
+    value: function setComponent() {
+      var _this = this;
+
+      if (typeof window !== 'undefined') {
+        if (!window.socket) {
+          return this.waitForSocket = window.setInterval(function () {
+            if (window.socket) {
+              window.clearInterval(_this.waitForSocket);
+              _this.setComponent();
+            }
+          }, 1000);
+        }
+
+        if (window.totalMem) {
+          this.setState({ totalMem: window.totalMem });
+        } else {
+          window.socket.on('total mem', function (totalMem) {
+            _this.setState({ totalMem: totalMem });
+          });
+        }
+
+        window.socket.on('free mem', function (freeMem) {
+          _this.setState({ freeMem: freeMem });
+        });
+      }
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      var _state = this.state;
+      var totalMem = _state.totalMem;
+      var freeMem = _state.freeMem;
+
+      var usedMem = totalMem - freeMem;
+
+      return _react2['default'].createElement(
+        'header',
+        { className: 'top-bar' },
+        _react2['default'].createElement(
+          'div',
+          { style: { width: '50%', float: 'left' } },
+          _react2['default'].createElement(
+            'h1',
+            null,
+            'PS|JS',
+            _react2['default'].createElement(
+              'small',
+              null,
+              this.props.processes.length,
+              ' processes'
+            )
+          )
+        ),
+        _react2['default'].createElement(
+          'div',
+          { style: { width: '50%', float: 'right', 'text-align': 'right' } },
+          _react2['default'].createElement(
+            'h2',
+            null,
+            _react2['default'].createElement(_progressBar2['default'], { goal: totalMem, current: usedMem }),
+            _react2['default'].createElement(_progressBar2['default'], { label: 'CPU (8)', goal: 2500, current: 700 }),
+            _react2['default'].createElement('i', { className: 'fa fa-bar-chart' }),
+            _react2['default'].createElement('i', { className: 'fa fa-search' })
+          )
+        )
+      );
+    }
+  }]);
+
+  return TopBar;
+})(_react2['default'].Component);
+
+exports['default'] = TopBar;
+module.exports = exports['default'];
+},{"./progress-bar":"/home/francois/Dev/psjs/dist/components/progress-bar.js","react":"/home/francois/Dev/psjs/node_modules/react/react.js"}],"/home/francois/Dev/psjs/node_modules/react/lib/AutoFocusMixin.js":[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -20195,4 +20262,4 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}]},{},["/home/francois/Dev/psjs/dist/components/app.js"]);
+},{}]},{},["/home/francois/Dev/psjs/dist/app.js"]);

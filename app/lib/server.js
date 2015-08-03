@@ -26,7 +26,7 @@ class Server extends EventEmitter {
   }
 
   homePage () {
-    this.app.get('/', (req, res, next) => {
+    this.app.get('/index.html', (req, res, next) => {
       let app = this.Factory({ path : req.path });
       res.send('<!doctype html>\n' + React.renderToString(app));
     });

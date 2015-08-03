@@ -1,8 +1,9 @@
 'use strict';
 
 import React from 'react';
+import ProgressBar from './progress-bar';
 
-class Memory extends React.Component {
+class TopBar extends React.Component {
   constructor (props) {
     super(props);
 
@@ -40,45 +41,30 @@ class Memory extends React.Component {
     }
   }
 
-  memUsed () {
-    let width = this.state.freeMem / this.state.totalMem * 100;
-
-    let background = 'transparent';
-
-    if ( width > 0 && width < 40 ) {
-      background = 'green';
-    }
-    else if ( width >= 40 && width < 80 ) {
-      background = 'orange';
-    }
-    else if ( width >= 80 ) {
-      background = 'red';
-    }
-
-    return { width : `${width}%`, background };
-  }
-
   render () {
-    let memUsed = this.memUsed();
-    let width = parseInt(memUsed.width);
-    let percent;
-
-    if ( ! isNaN(width) ) {
-      percent = width.toFixed(2) + '%';
-    }
+    let { totalMem, freeMem } = this.state;
+    let usedMem = totalMem - freeMem;
 
     return (
-      <section>
-        <h2>Memory { this.state.totalMem }</h2>
-        <div className="memory-bar">
-          <div className="memory-used" style={ memUsed }></div>
-          <div className="memory-percent">
-            { percent }
-          </div>
+      <header className="top-bar">
+        <div style={ { width: '50%', float: 'left' }}>
+          <h1>
+            PS|JS
+            <small>{ this.props.processes.length } processes</small>
+          </h1>
         </div>
-      </section>
+        <div style={ { width: '50%', float: 'right', 'text-align': 'right' }}>
+          <h2>
+            <ProgressBar goal={ totalMem } current={ usedMem } />
+            <ProgressBar label="CPU (8)" goal={ 2500 } current={ 700 } />
+
+            <i className="fa fa-bar-chart"></i>
+            <i className="fa fa-search"></i>
+          </h2>
+        </div>
+      </header>
     );
   }
 }
 
-export default Memory;
+export default TopBar;

@@ -63,7 +63,7 @@ var Server = (function (_EventEmitter) {
     value: function homePage() {
       var _this = this;
 
-      this.app.get('/', function (req, res, next) {
+      this.app.get('/index.html', function (req, res, next) {
         var app = _this.Factory({ path: req.path });
         res.send('<!doctype html>\n' + _react2['default'].renderToString(app));
       });

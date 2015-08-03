@@ -1,15 +1,16 @@
 {
   "name": "psjs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
-  "main": "index.js",
+  "main": "index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "transpile": "babel app/ --modules common --stage 1 --out-dir dist;",
     "hot-transpile": "babel app/ --watch --modules common --stage 1 --out-dir dist;",
     "build": "browserify dist/components/app.js -o dist/js/bundle.js",
-    "watch": "watchify dist/components/app.js -o dist/js/bundle.js",
-    "css" : "js4 $PWD/assets/css/index.js > $PWD/assets/css/index.css",
+    "watch": "watchify dist/app.js -o dist/js/bundle.js",
+    "css": "babel assets/css/index.js | node > assets/css/index.css",
+    "watch-css": "node dist/bin/watch-css.js",
     "start": "node dist/bin/start.js"
   },
   "author": "",
@@ -21,9 +22,15 @@
   },
   "devDependencies": {
     "babel": "^5.8.20",
-    "babelify": "^6.1.2"
+    "babelify": "^6.1.2",
+    "colors": "^1.1.2"
   },
   "bin": {
-    "psjs" : "npm start"
+    "psjs": "npm start"
+  },
+  "window": {
+    "toolbar": true,
+    "width": 800,
+    "height": 500
   }
 }

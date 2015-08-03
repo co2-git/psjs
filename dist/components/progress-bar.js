@@ -18,103 +18,63 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
-var Memory = (function (_React$Component) {
-  _inherits(Memory, _React$Component);
+var i = 0;
 
-  function Memory(props) {
-    _classCallCheck(this, Memory);
+var ProgressBar = (function (_React$Component) {
+  _inherits(ProgressBar, _React$Component);
 
-    _get(Object.getPrototypeOf(Memory.prototype), 'constructor', this).call(this, props);
+  function ProgressBar() {
+    _classCallCheck(this, ProgressBar);
 
-    this.state = {
-      totalMem: 0,
-      freeMem: 0
-    };
-
-    this.setComponent();
+    _get(Object.getPrototypeOf(ProgressBar.prototype), 'constructor', this).apply(this, arguments);
   }
 
-  _createClass(Memory, [{
-    key: 'setComponent',
-    value: function setComponent() {
-      var _this = this;
-
-      if (typeof window !== 'undefined') {
-        if (!window.socket) {
-          return this.waitForSocket = window.setInterval(function () {
-            if (window.socket) {
-              window.clearInterval(_this.waitForSocket);
-              _this.setComponent();
-            }
-          }, 1000);
-        }
-
-        if (window.totalMem) {
-          this.setState({ totalMem: window.totalMem });
-        } else {
-          window.socket.on('total mem', function (totalMem) {
-            _this.setState({ totalMem: totalMem });
-          });
-        }
-
-        window.socket.on('free mem', function (freeMem) {
-          _this.setState({ freeMem: freeMem });
-        });
-      }
-    }
-  }, {
-    key: 'memUsed',
-    value: function memUsed() {
-      var width = this.state.freeMem / this.state.totalMem * 100;
-
-      var background = 'transparent';
-
-      if (width > 0 && width < 40) {
-        background = 'green';
-      } else if (width >= 40 && width < 80) {
-        background = 'orange';
-      } else if (width >= 80) {
-        background = 'red';
-      }
-
-      return { width: width + '%', background: background };
-    }
-  }, {
+  _createClass(ProgressBar, [{
     key: 'render',
     value: function render() {
-      var memUsed = this.memUsed();
-      var width = parseInt(memUsed.width);
+      var width = this.props.current / this.props.goal * 100;
+
+      width = parseInt(width);
       var percent = undefined;
+      var background = 'transparent';
 
       if (!isNaN(width)) {
         percent = width.toFixed(2) + '%';
+
+        if (width > 0 && width < 40) {
+          background = 'green';
+        } else if (width >= 40 && width < 80) {
+          background = 'orange';
+        } else if (width >= 80) {
+          background = 'red';
+        }
+      }
+
+      i++;
+
+      if (i < 10) {
+        console.log({ props: this.props, width: width });
       }
 
       return _react2['default'].createElement(
-        'section',
-        null,
-        _react2['default'].createElement(
-          'h2',
-          null,
-          'Memory ',
-          this.state.totalMem
-        ),
+        'div',
+        { className: 'progress_bar' },
+        _react2['default'].createElement('div', {
+          className: 'progress_bar-percent',
+          style: {
+            width: width + '%', background: background
+          } }),
         _react2['default'].createElement(
           'div',
-          { className: 'memory-bar' },
-          _react2['default'].createElement('div', { className: 'memory-used', style: memUsed }),
-          _react2['default'].createElement(
-            'div',
-            { className: 'memory-percent' },
-            percent
-          )
+          { className: 'progress_bar-label' },
+          width + '%'
         )
       );
     }
   }]);
 
-  return Memory;
+  return ProgressBar;
 })(_react2['default'].Component);
 
-exports['default'] = Memory;
+exports['default'] = ProgressBar;
 module.exports = exports['default'];

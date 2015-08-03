@@ -24,9 +24,9 @@ var _processRow = require('./process-row');
 
 var _processRow2 = _interopRequireDefault(_processRow);
 
-var _memory = require('./memory');
+var _topBar = require('./top-bar');
 
-var _memory2 = _interopRequireDefault(_memory);
+var _topBar2 = _interopRequireDefault(_topBar);
 
 var App = (function (_React$Component) {
   _inherits(App, _React$Component);
@@ -85,73 +85,53 @@ var App = (function (_React$Component) {
       var processes = this.applyFilters();
 
       return _react2['default'].createElement(
-        'html',
+        'section',
         null,
-        _react2['default'].createElement('meta', { charSet: 'utf-8' }),
+        _react2['default'].createElement(_topBar2['default'], { processes: processes }),
         _react2['default'].createElement(
-          'title',
+          'header',
           null,
-          'ps|js'
-        ),
-        _react2['default'].createElement('link', { rel: 'stylesheet', type: 'text/css', href: '/assets/css/index.css' }),
-        _react2['default'].createElement('link', { rel: 'stylesheet', type: 'text/css', href: '/assets/bower_components/font-awesome/css/font-awesome.min.css' }),
-        _react2['default'].createElement(
-          'section',
-          { role: 'main' },
           _react2['default'].createElement(
-            'header',
+            'form',
             null,
-            _react2['default'].createElement(
-              'h1',
-              null,
-              _react2['default'].createElement(
-                'small',
-                null,
-                processes.length
-              ),
-              _react2['default'].createElement(
-                'span',
-                null,
-                ' Processes'
-              )
-            ),
-            _react2['default'].createElement(_memory2['default'], null),
-            _react2['default'].createElement(
-              'form',
-              null,
-              _react2['default'].createElement('input', {
-                ref: 'cmdFilter',
-                type: 'text',
-                placeholder: 'Search command',
-                onKeyUp: this.filterByCmd.bind(this)
-              }),
-              _react2['default'].createElement(
-                'button',
-                null,
-                _react2['default'].createElement('i', { className: 'fa fa-search' })
-              )
-            )
-          ),
-          _react2['default'].createElement(
-            'section',
-            null,
-            _react2['default'].createElement(_processRow2['default'], { pid: 'PID', cmd: 'Command', mem: 'Memory' }),
-            processes.filter(function (ps) {
-              return ps.pid === window.pid;
-            }).map(function (ps) {
-              return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps));
+            _react2['default'].createElement('input', {
+              ref: 'cmdFilter',
+              type: 'text',
+              placeholder: 'Search command',
+              onKeyUp: this.filterByCmd.bind(this)
             }),
-            processes.filter(function (ps) {
-              return ps.pid !== window.pid;
-            }).filter(function (ps) {
-              return ps.state === 'R' || ps.state === 'S';
-            }).map(function (ps) {
-              return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps));
-            })
+            _react2['default'].createElement(
+              'button',
+              null,
+              _react2['default'].createElement('i', { className: 'fa fa-search' })
+            )
           )
         ),
-        _react2['default'].createElement('script', { src: '/socket.io/socket.io.js' }),
-        _react2['default'].createElement('script', { src: '/bundle.js' })
+        _react2['default'].createElement(
+          'section',
+          null,
+          _react2['default'].createElement(_processRow2['default'], { pid: 'PID', cmd: 'Command', mem: 'Memory' }),
+          processes.filter(function (ps) {
+            return ps.pid === window.pid;
+          }).map(function (ps) {
+            return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps));
+          }),
+          processes.filter(function (ps) {
+            return ps.pid !== window.pid;
+          }).filter(function (ps) {
+            return ps.state === 'R' || ps.state === 'S';
+          }).sort(function (a, b) {
+            if (parseInt(a.mem) > parseInt(b.mem)) {
+              return 1;
+            }
+            if (parseInt(a.mem) < parseInt(b.mem)) {
+              return -1;
+            }
+            return 0;
+          }).map(function (ps) {
+            return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps));
+          })
+        )
       );
     }
   }]);
@@ -160,35 +140,4 @@ var App = (function (_React$Component) {
 })(_react2['default'].Component);
 
 exports['default'] = App;
-
-if (typeof window !== 'undefined') {
-  window.React = _react2['default'];
-
-  _react2['default'].render(_react2['default'].createElement(App, null), window.document);
-
-  window.socket = io.connect();
-
-  window.socket.on('ps', function (ps) {
-
-    ps.sort(function (a, b) {
-      if (+a.pid > +b.pid) {
-        return 1;
-      }
-      if (+a.pid < +b.pid) {
-        return -1;
-      }
-      return 0;
-    });
-
-    _react2['default'].render(_react2['default'].createElement(App, { processes: ps }), window.document);
-  });
-
-  window.socket.on('self', function (ps) {
-    window.pid = ps;
-  });
-
-  window.socket.on('total mem', function (mem) {
-    window.totalMem = mem;
-  });
-}
 module.exports = exports['default'];
