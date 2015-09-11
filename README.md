@@ -15,3 +15,5 @@ nw .
 
 test C++ wrapper for nodejs 4.0
 foo
+
+foo22
