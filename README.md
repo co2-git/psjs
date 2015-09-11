@@ -12,8 +12,3 @@ npm install psjs
 npm start & #  to start the socket server (which I might remove, I'll see)
 nw .
 ```
-
-test C++ wrapper for nodejs 4.0
-foo
-
-foo22
