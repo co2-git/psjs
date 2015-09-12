@@ -12,9 +12,3 @@ npm install psjs
 npm start & #  to start the socket server (which I might remove, I'll see)
 nw .
 ```
-test1
-test2
-test3
-test4
-test5
-test6
