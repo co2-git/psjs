@@ -82,27 +82,51 @@ var PS = (function () {
           new Promise(function (ok, ko) {
             PS.readStream('/proc/' + pid + '/status').then(function (data) {
               return ok(PS.parseStatus(data));
-            }, ko);
+            }, function (error) {
+              if (error.code === 'ENOENT') {
+                ok(false);
+              } else {
+                ko();
+              }
+            });
           }),
 
           // cmdline
           new Promise(function (ok, ko) {
             PS.readStream('/proc/' + pid + '/cmdline').then(function (data) {
               return ok(data);
-            }, ko);
+            }, function (error) {
+              if (error.code === 'ENOENT') {
+                ok(false);
+              } else {
+                ko();
+              }
+            });
           }),
 
           // Stat
           new Promise(function (ok, ko) {
             PS.readStream('/proc/' + pid + '/stat').then(function (data) {
               return ok(data);
-            }, ko);
+            }, function (error) {
+              if (error.code === 'ENOENT') {
+                ok(false);
+              } else {
+                ko();
+              }
+            });
           })]).then(function (results) {
             var _results = _slicedToArray(results, 3);
 
             var status = _results[0];
             var cmd = _results[1];
             var stat = _results[2];
+
+            if (results.some(function (result) {
+              return result === false;
+            })) {
+              return ok(false);
+            }
 
             cmd = cmd || status.Name;
 
@@ -137,13 +161,55 @@ var PS = (function () {
           });
 
           Promise.all(promises).then(function (ps) {
-            ps = ps.map(function (ps) {
+            ps = ps.filter(function (ps) {
+              return ps;
+            }).map(function (ps) {
               ps.cmd = ps.cmdline || ps.status.Name;
               return ps;
             });
             ok(ps);
           }, ko);
         });
+      });
+    }
+  }, {
+    key: 'getCPUTime',
+    value: function getCPUTime() {
+      return new Promise(function (ok, ko) {
+        PS.readStream('/proc/stat').then(function (data) {
+          try {
+            var lines = data.split(/\n/);
+
+            var summary = lines.shift();
+            var summaryBits = summary.split(/\s+/);
+            summaryBits.shift();
+
+            var _summaryBits$map = summaryBits.map(function (bit) {
+              return +bit;
+            });
+
+            var _summaryBits$map2 = _slicedToArray(_summaryBits$map, 10);
+
+            var user = _summaryBits$map2[0];
+            var nice = _summaryBits$map2[1];
+            var system = _summaryBits$map2[2];
+            var idle = _summaryBits$map2[3];
+            var iowait = _summaryBits$map2[4];
+            var irq = _summaryBits$map2[5];
+            var softirq = _summaryBits$map2[6];
+            var steal = _summaryBits$map2[7];
+            var guest = _summaryBits$map2[8];
+            var guest_nice = _summaryBits$map2[9];
+
+            var idleTime = idle + iowait,
+                nonIdleTime = user + nice + system + irq + softirq + steal,
+                totalTime = idleTime + nonIdleTime;
+
+            ok({ idleTime: idleTime, nonIdleTime: nonIdleTime, totalTime: totalTime });
+          } catch (error) {
+            ko(error);
+          }
+        }, ko);
       });
     }
   }]);

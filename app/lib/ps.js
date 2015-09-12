@@ -50,7 +50,14 @@ class PS {
                 .readStream('/proc/' + pid + '/status')
                 .then(
                   data => ok(PS.parseStatus(data)),
-                  ko
+                  error => {
+                    if ( error.code === 'ENOENT' ) {
+                      ok(false);
+                    }
+                    else {
+                      ko();
+                    }
+                  }
                 );
             }),
 
@@ -60,7 +67,14 @@ class PS {
                 .readStream('/proc/' + pid + '/cmdline')
                 .then(
                   data => ok(data),
-                  ko
+                  error => {
+                    if ( error.code === 'ENOENT' ) {
+                      ok(false);
+                    }
+                    else {
+                      ko();
+                    }
+                  }
                 );
             }),
 
@@ -70,13 +84,24 @@ class PS {
                 .readStream('/proc/' + pid + '/stat')
                 .then(
                   data => ok(data),
-                  ko
+                  error => {
+                    if ( error.code === 'ENOENT' ) {
+                      ok(false);
+                    }
+                    else {
+                      ko();
+                    }
+                  }
                 );
             })
           ])
           .then(
             results => {
               let [ status, cmd, stat ] = results;
+
+              if ( results.some(result => result === false) ) {
+                return ok(false);
+              }
 
               cmd = cmd || status.Name;
 
@@ -112,10 +137,12 @@ class PS {
           .all(promises)
           .then(
             ps => {
-              ps = ps.map(ps => {
-                ps.cmd = ps.cmdline || ps.status.Name;
-                return ps;
-              });
+              ps = ps
+                .filter(ps => ps)
+                .map(ps => {
+                  ps.cmd = ps.cmdline || ps.status.Name;
+                  return ps;
+                });
               ok(ps);
             },
             ko
@@ -123,6 +150,48 @@ class PS {
       });
     });
 
+  }
+
+  static getCPUTime () {
+    return new Promise((ok, ko) => {
+      PS
+        .readStream('/proc/stat')
+        .then(
+          data => {
+            try {
+              let lines = data.split(/\n/);
+
+              let summary = lines.shift();
+              let summaryBits = summary.split(/\s+/);
+              summaryBits.shift();
+
+              let [
+                  user,
+                  nice,
+                  system,
+                  idle,
+                  iowait,
+                  irq,
+                  softirq,
+                  steal,
+                  guest,
+                  guest_nice
+                ] = summaryBits.map(bit => +bit);
+
+              let
+                idleTime      =   idle + iowait,
+                nonIdleTime   =   user + nice + system + irq + softirq + steal,
+                totalTime     =   idleTime + nonIdleTime;
+
+              ok({ idleTime, nonIdleTime, totalTime });
+            }
+            catch ( error ) {
+              ko(error);
+            }
+          },
+          ko
+        );
+    });
   }
 
 }

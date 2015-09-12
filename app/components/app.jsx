@@ -13,7 +13,8 @@ class App extends React.Component {
       processes   :   props.processes || [],
       filters     :   {
         cmd       :   null
-      }
+      },
+      memory      :   this.props
     };
   }
 
@@ -46,11 +47,13 @@ class App extends React.Component {
 
   render () {
 
+    console.info('Render App', this.props);
+
     let processes = this.applyFilters();
 
     return (
       <section>
-        <TopBar processes={ processes } />
+        <TopBar { ...this.props } />
 
         <header>
           <form>
@@ -69,22 +72,35 @@ class App extends React.Component {
           {
             processes
               .filter( ps => ps.pid === window.pid )
-              .map( ps => <ProcessRow key={ ps.pid } {...ps} /> )
+              .map( ps => <ProcessRow key={ ps.pid } {...ps} total-memory={ this.props.memory.total } /> )
           }
           {
             processes
               .filter( ps => ps.pid !== window.pid )
               .filter( ps => ( ps.state === 'R' || ps.state === 'S' ) )
               .sort((a,b) => {
-                if ( parseInt(a.mem) > parseInt(b.mem) ) {
+                let aMem = parseInt(a.mem);
+                let bMem = parseInt(b.mem);
+
+                if ( isNaN(aMem) ) {
                   return 1;
                 }
-                if ( parseInt(a.mem) < parseInt(b.mem) ) {
+
+                if ( isNaN(bMem) ) {
                   return -1;
                 }
+
+                if ( aMem > bMem ) {
+                  return -1;
+                }
+
+                if ( aMem < bMem ) {
+                  return 1;
+                }
+
                 return 0;
               })
-              .map( ps => <ProcessRow key={ ps.pid } {...ps} /> )
+              .map( ps => <ProcessRow key={ ps.pid } {...ps} total-memory={ this.props.memory.total } /> )
           }
         </section>
       </section>

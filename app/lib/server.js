@@ -6,6 +6,7 @@ import { EventEmitter }       from 'events';
 import API                    from './api';
 import React                  from 'react';
 import App                    from '../components/app';
+import props                  from '../props';
 
 class Server extends EventEmitter {
 
@@ -27,7 +28,7 @@ class Server extends EventEmitter {
 
   homePage () {
     this.app.get('/index.html', (req, res, next) => {
-      let app = this.Factory({ path : req.path });
+      let app = this.Factory({ ...props });
       res.send('<!doctype html>\n' + React.renderToString(app));
     });
   }

@@ -25,62 +25,28 @@ var _progressBar2 = _interopRequireDefault(_progressBar);
 var TopBar = (function (_React$Component) {
   _inherits(TopBar, _React$Component);
 
-  function TopBar(props) {
+  function TopBar() {
     _classCallCheck(this, TopBar);
 
-    _get(Object.getPrototypeOf(TopBar.prototype), 'constructor', this).call(this, props);
-
-    this.state = {
-      totalMem: 0,
-      freeMem: 0
-    };
-
-    this.setComponent();
+    _get(Object.getPrototypeOf(TopBar.prototype), 'constructor', this).apply(this, arguments);
   }
 
   _createClass(TopBar, [{
-    key: 'setComponent',
-    value: function setComponent() {
-      var _this = this;
-
-      if (typeof window !== 'undefined') {
-        if (!window.socket) {
-          return this.waitForSocket = window.setInterval(function () {
-            if (window.socket) {
-              window.clearInterval(_this.waitForSocket);
-              _this.setComponent();
-            }
-          }, 1000);
-        }
-
-        if (window.totalMem) {
-          this.setState({ totalMem: window.totalMem });
-        } else {
-          window.socket.on('total mem', function (totalMem) {
-            _this.setState({ totalMem: totalMem });
-          });
-        }
-
-        window.socket.on('free mem', function (freeMem) {
-          _this.setState({ freeMem: freeMem });
-        });
-      }
-    }
-  }, {
     key: 'render',
     value: function render() {
-      var _state = this.state;
-      var totalMem = _state.totalMem;
-      var freeMem = _state.freeMem;
+      var _props = this.props;
+      var memory = _props.memory;
+      var processes = _props.processes;
+      var cpu = _props.cpu;
 
-      var usedMem = totalMem - freeMem;
+      memory.used = memory.total - memory.free;
 
       return _react2['default'].createElement(
         'header',
-        { className: 'top-bar' },
+        { className: 'top-bar row' },
         _react2['default'].createElement(
           'div',
-          { style: { width: '50%', float: 'left' } },
+          null,
           _react2['default'].createElement(
             'h1',
             null,
@@ -88,20 +54,25 @@ var TopBar = (function (_React$Component) {
             _react2['default'].createElement(
               'small',
               null,
-              this.props.processes.length,
+              processes.length,
               ' processes'
             )
           )
         ),
         _react2['default'].createElement(
           'div',
-          { style: { width: '50%', float: 'right', 'text-align': 'right' } },
+          null,
           _react2['default'].createElement(
             'h2',
             null,
-            _react2['default'].createElement(_progressBar2['default'], { goal: totalMem, current: usedMem }),
-            _react2['default'].createElement(_progressBar2['default'], { label: 'CPU (8)', goal: 2500, current: 700 }),
-            _react2['default'].createElement('i', { className: 'fa fa-bar-chart' }),
+            _react2['default'].createElement(
+              'div',
+              { className: 'progress_bar-wrapper' },
+              _react2['default'].createElement(_progressBar2['default'], { goal: memory.total, current: memory.used })
+            ),
+            _react2['default'].createElement(_progressBar2['default'], { goal: 100, current: cpu.load }),
+            _react2['default'].createElement('i', { className: 'fa fa-eye' }),
+            _react2['default'].createElement('input', { type: 'text', placeholder: 'Search', name: 'search' }),
             _react2['default'].createElement('i', { className: 'fa fa-search' })
           )
         )

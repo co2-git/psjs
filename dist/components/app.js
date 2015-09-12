@@ -40,7 +40,8 @@ var App = (function (_React$Component) {
       processes: props.processes || [],
       filters: {
         cmd: null
-      }
+      },
+      memory: this.props
     };
   }
 
@@ -81,13 +82,16 @@ var App = (function (_React$Component) {
   }, {
     key: 'render',
     value: function render() {
+      var _this = this;
+
+      console.info('Render App', this.props);
 
       var processes = this.applyFilters();
 
       return _react2['default'].createElement(
         'section',
         null,
-        _react2['default'].createElement(_topBar2['default'], { processes: processes }),
+        _react2['default'].createElement(_topBar2['default'], this.props),
         _react2['default'].createElement(
           'header',
           null,
@@ -114,22 +118,35 @@ var App = (function (_React$Component) {
           processes.filter(function (ps) {
             return ps.pid === window.pid;
           }).map(function (ps) {
-            return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps));
+            return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps, { 'total-memory': _this.props.memory.total }));
           }),
           processes.filter(function (ps) {
             return ps.pid !== window.pid;
           }).filter(function (ps) {
             return ps.state === 'R' || ps.state === 'S';
           }).sort(function (a, b) {
-            if (parseInt(a.mem) > parseInt(b.mem)) {
+            var aMem = parseInt(a.mem);
+            var bMem = parseInt(b.mem);
+
+            if (isNaN(aMem)) {
               return 1;
             }
-            if (parseInt(a.mem) < parseInt(b.mem)) {
+
+            if (isNaN(bMem)) {
               return -1;
             }
+
+            if (aMem > bMem) {
+              return -1;
+            }
+
+            if (aMem < bMem) {
+              return 1;
+            }
+
             return 0;
           }).map(function (ps) {
-            return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps));
+            return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps, { 'total-memory': _this.props.memory.total }));
           })
         )
       );

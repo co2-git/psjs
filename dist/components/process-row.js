@@ -18,6 +18,10 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _progressBar = require('./progress-bar');
+
+var _progressBar2 = _interopRequireDefault(_progressBar);
+
 var ProcessRow = (function (_React$Component) {
   _inherits(ProcessRow, _React$Component);
 
@@ -28,35 +32,13 @@ var ProcessRow = (function (_React$Component) {
   }
 
   _createClass(ProcessRow, [{
-    key: 'memUsed',
-    value: function memUsed(mem) {
-      if (typeof window !== 'undefined' && !isNaN(mem)) {
-        var width = mem / window.totalMem * 100;
-
-        var background = 'transparent';
-
-        if (width > 0 && width < 40) {
-          background = 'green';
-        } else if (width >= 40 && width < 80) {
-          background = 'orange';
-        } else if (width >= 80) {
-          background = 'red';
-        }
-
-        return { width: width + '%', background: background };
-      } else {
-        return { opacity: 0 };
-      }
-    }
-  }, {
     key: 'render',
     value: function render() {
-      var memUsed = this.memUsed(parseInt(this.props.mem));
-      var width = parseInt(memUsed.width);
-      var percent = undefined;
 
-      if (!isNaN(width)) {
-        percent = width.toFixed(2) + '%';
+      var mem = parseInt(this.props.mem);
+
+      if (isNaN(mem)) {
+        mem = 0;
       }
 
       return _react2['default'].createElement(
@@ -64,27 +46,18 @@ var ProcessRow = (function (_React$Component) {
         { className: 'row' },
         _react2['default'].createElement(
           'div',
-          { className: 'column-10' },
+          { className: 'column-pid' },
           this.props.pid
         ),
         _react2['default'].createElement(
           'div',
-          { className: 'column-60' },
+          { className: 'column-cmd' },
           this.props.cmd
         ),
         _react2['default'].createElement(
           'div',
-          { className: 'column-20' },
-          _react2['default'].createElement(
-            'div',
-            { className: 'memory-bar' },
-            _react2['default'].createElement('div', { className: 'memory-used', style: memUsed }),
-            _react2['default'].createElement(
-              'div',
-              { className: 'memory-percent' },
-              percent
-            )
-          )
+          { className: 'column-mem' },
+          _react2['default'].createElement(_progressBar2['default'], { goal: this.props['total-memory'], current: mem })
         )
       );
     }

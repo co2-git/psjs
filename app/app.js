@@ -2,10 +2,15 @@
 
 import React from 'react';
 import App from './components/app';
+import props from './props';
 
 window.React = React;
 
-React.render(<App />, window.document.getElementById('main'));
+function render () {
+  React.render(<App { ...props } />, window.document.getElementById('main'));
+}
+
+render();
 
 window.socket = io.connect('http://localhost:2007');
 
@@ -21,7 +26,9 @@ window.socket.on('ps', ps => {
     return 0;
   });
 
-  React.render(<App processes={ ps } />, window.document.getElementById('main'));
+  props.processes = ps;
+
+  render();
 });
 
 window.socket.on('self', ps => {
@@ -29,5 +36,16 @@ window.socket.on('self', ps => {
 });
 
 window.socket.on('total mem', mem => {
-  window.totalMem = mem;
+  props.memory.total = mem;
+  render();
+});
+
+window.socket.on('free mem', mem => {
+  props.memory.free = mem;
+  render();
+});
+
+window.socket.on('cpu load', load => {
+  props.cpu.load = load;
+  render();
 });

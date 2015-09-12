@@ -7,8 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "transpile": "babel app/ --modules common --stage 1 --out-dir dist;",
     "hot-transpile": "babel app/ --watch --modules common --stage 1 --out-dir dist;",
-    "build": "browserify dist/components/app.js -o dist/js/bundle.js",
-    "watch": "watchify dist/app.js -o dist/js/bundle.js",
+    "browserify": "browserify dist/components/app.js -o dist/js/bundle.js",
+    "watchify": "watchify dist/app.js -o dist/js/bundle.js",
     "css": "babel assets/css/index.js | node > assets/css/index.css",
     "watch-css": "node dist/bin/watch-css.js",
     "start": "node dist/bin/start.js"

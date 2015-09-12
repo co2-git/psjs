@@ -6,31 +6,52 @@ import fs                 from 'fs';
 import path               from 'path';
 import os                 from 'os';
 import SocketIO           from 'socket.io';
+import colors             from 'colors';
 import PS                 from './ps';
 
 class SocketAPI extends EventEmitter {
 
   constructor (server) {
     try {
+      console.log('Welcome to PS|JS :)'.blue);
+
       process.nextTick(() => {
         super();
 
         this.server     =   server;
         this.processes  =   [];
         this.sockets    =   [];
+        this.CPU        =   {};
 
         this.io = SocketIO.listen(this.server.server)
           .on('connection', this.connected.bind(this));
 
         this.totalMem = os.totalmem();
 
-        this
-          .fetch()
+        console.log('Getting processes, CPU'.grey);
+
+        Promise
+          .all([
+            PS.get(),
+            PS.getCPUTime()
+          ])
           .then(
-            processes => {
-              this.processes = processes;
-              this.broadcast('ps', processes);
-              this.poll();
+            results => {
+              try {
+                let [ processes, cpu ] = results;
+
+                console.log(`Got ${processes.length} processes`.green);
+
+                this.processes = processes;
+                this.broadcast('ps', processes);
+
+                this.cpu = cpu;
+
+                setTimeout(this.poll.bind(this), 2500);
+              }
+              catch ( error ) {
+                this.emit('error', error);
+              }
             },
             error => this.emit('error', error)
           );
@@ -56,39 +77,69 @@ class SocketAPI extends EventEmitter {
   // Check if /proc has changed
 
   poll () {
-    this.poller = setInterval(
-      () => {
-        console.log('polling');
+    console.log('Polling'.cyan);
 
-        // free mem
-        this.sockets.forEach(socket => socket.emit('free mem', os.freemem()));
+    Promise
+      .all([
+        PS.get(),
+        PS.getCPUTime()
+      ])
+      .then(
+        results => {
+          try {
+            // free mem
+            this.sockets.forEach(socket => socket.emit('free mem', os.freemem()));
 
-        this.fetch().then(
-          processes => {
-            // let newProcesses = processes.filter(ps => ! this.processes
-            //   .some(_ps => _ps.pid === ps.pid));
-            //
-            // console.log('new processes', newProcesses);
+            let [ processes, cpu ] = results;
+
+            this.processes = processes;
+            console.log(`Got ${processes.length} processes`.green);
             this.broadcast('ps', processes);
-          },
-          error => this.emit('error', error)
-        );
-      },
-      2500);
+
+            let time = cpu.totalTime - this.cpu.totalTime;
+            let idle = cpu.idleTime - this.cpu.idleTime;
+
+            let load = ( ( time - idle ) / time );
+
+            console.log('comparing', cpu, this.cpu, { load });
+
+            this.cpu = cpu;
+
+            this.cpu.load = load;
+
+            console.log('load average', (os.loadavg()[0] / 8 * 100) + load);
+
+            this.broadcast('cpu load', (os.loadavg()[0] / 8 * 100) + load);
+
+            setTimeout(this.poll.bind(this), 2500);
+          }
+          catch ( error ) {
+            this.emit('error', error);
+          }
+        },
+        error => this.emit('error', error)
+      );
   }
 
   connected (socket) {
-    this.sockets.push(socket);
+    try {
+      this.sockets.push(socket);
 
-    this.emit('message', 'new socket client');
+      this.emit('message', 'new socket client');
 
-    socket.on('disconnected', () => {
-      this.sockets = this.sockets.filter(_socket => _socket.id !== socket.id );
-    });
+      socket.on('disconnected', () => {
+        this.sockets = this.sockets.filter(_socket => _socket.id !== socket.id );
+      });
 
-    socket.emit('self', process.pid);
+      socket.emit('self', process.pid);
 
-    socket.emit('total mem', this.totalMem);
+      socket.emit('total mem', this.totalMem);
+    }
+    catch ( error ) {
+      this.server.emit('error', error);
+    }
+
+    // socket.emit('')
   }
 
 }

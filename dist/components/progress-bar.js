@@ -18,8 +18,6 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
-var i = 0;
-
 var ProgressBar = (function (_React$Component) {
   _inherits(ProgressBar, _React$Component);
 
@@ -50,12 +48,6 @@ var ProgressBar = (function (_React$Component) {
         }
       }
 
-      i++;
-
-      if (i < 10) {
-        console.log({ props: this.props, width: width });
-      }
-
       return _react2['default'].createElement(
         'div',
         { className: 'progress_bar' },
@@ -67,7 +59,7 @@ var ProgressBar = (function (_React$Component) {
         _react2['default'].createElement(
           'div',
           { className: 'progress_bar-label' },
-          width + '%'
+          percent
         )
       );
     }

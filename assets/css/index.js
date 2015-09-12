@@ -31,21 +31,19 @@ const
 
   ROW               =   () => `
   display: flex;
-  justify-content: space-around;
-  flex-flow: row wrap
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
   `,
 
   COLUMN            =   () => `
-  margin: auto;
   word-wrap: break-word;
-  padding: ${COLUMN_PADDING};
-  box-sizing: border-box;
-  background: #eee
+  text-align: left;
   `,
 
   COLUMNS           =   i => `
 .column-${i} {
-  width: calc(${i}% - ${COLUMN_PADDING});
+  /*width: calc(${i}% - ${COLUMN_PADDING});*/
   ${COLUMN()}
 }
   `,
@@ -77,7 +75,7 @@ const
   `,
 
   PROGRESS_BAR_PERCENT  =   () => `
-   padding: .75em;`,
+   padding: .75em 0;`,
 
   PROGRESS_BAR_LABEL    =   () => `
   margin-top: -1.30em;
@@ -136,6 +134,10 @@ h1, h2, h3, h4, h5 {
 .column { ${COLUMN()}
 }
 
+.column-mem { ${COLUMN()}
+  flex-grow: 5
+}
+
 `);
 
 for ( let i = 0; i <= 100; i += 5 ) {
@@ -153,8 +155,19 @@ console.log(`
 .top-bar h1 small { ${TOPBAR_H1_SMALL()}
 }
 
+.top-bar .progress_bar-wrapper {
+    width: 100px;
+    text-align: center;
+    display: inline-block;
+}
+
+.top-bar .progress_bar-wrapper:first-child {
+  border-right: 1px solid #fff
+}
+
 .top-bar .progress_bar {
-  width: 80px;
+  background: #ccc;
+  width: 100px;
 }
 
 .top-bar .progress_bar,
@@ -164,7 +177,12 @@ console.log(`
 
 .top-bar .progress_bar:first-child,
 .top-bar .progress_bar:first-child .progress_bar-percent {
-  border-radius: 4px 0 0 4px;
+  border-radius: 4px 0 0 4px
+}
+
+.top-bar .fa {
+  padding: 0 6px;
+  cursor: pointer;
 }
 `);
 

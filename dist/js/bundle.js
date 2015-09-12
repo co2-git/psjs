@@ -11,9 +11,17 @@ var _componentsApp = require('./components/app');
 
 var _componentsApp2 = _interopRequireDefault(_componentsApp);
 
+var _props = require('./props');
+
+var _props2 = _interopRequireDefault(_props);
+
 window.React = _react2['default'];
 
-_react2['default'].render(_react2['default'].createElement(_componentsApp2['default'], null), window.document.getElementById('main'));
+function render() {
+  _react2['default'].render(_react2['default'].createElement(_componentsApp2['default'], _props2['default']), window.document.getElementById('main'));
+}
+
+render();
 
 window.socket = io.connect('http://localhost:2007');
 
@@ -29,7 +37,9 @@ window.socket.on('ps', function (ps) {
     return 0;
   });
 
-  _react2['default'].render(_react2['default'].createElement(_componentsApp2['default'], { processes: ps }), window.document.getElementById('main'));
+  _props2['default'].processes = ps;
+
+  render();
 });
 
 window.socket.on('self', function (ps) {
@@ -37,9 +47,20 @@ window.socket.on('self', function (ps) {
 });
 
 window.socket.on('total mem', function (mem) {
-  window.totalMem = mem;
+  _props2['default'].memory.total = mem;
+  render();
 });
-},{"./components/app":"/home/francois/Dev/psjs/dist/components/app.js","react":"/home/francois/Dev/psjs/node_modules/react/react.js"}],"/home/francois/Dev/psjs/dist/components/app.js":[function(require,module,exports){
+
+window.socket.on('free mem', function (mem) {
+  _props2['default'].memory.free = mem;
+  render();
+});
+
+window.socket.on('cpu load', function (load) {
+  _props2['default'].cpu.load = load;
+  render();
+});
+},{"./components/app":"/home/francois/Dev/psjs/dist/components/app.js","./props":"/home/francois/Dev/psjs/dist/props.js","react":"/home/francois/Dev/psjs/node_modules/react/react.js"}],"/home/francois/Dev/psjs/dist/components/app.js":[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -82,7 +103,8 @@ var App = (function (_React$Component) {
       processes: props.processes || [],
       filters: {
         cmd: null
-      }
+      },
+      memory: this.props
     };
   }
 
@@ -123,13 +145,16 @@ var App = (function (_React$Component) {
   }, {
     key: 'render',
     value: function render() {
+      var _this = this;
+
+      console.info('Render App', this.props);
 
       var processes = this.applyFilters();
 
       return _react2['default'].createElement(
         'section',
         null,
-        _react2['default'].createElement(_topBar2['default'], { processes: processes }),
+        _react2['default'].createElement(_topBar2['default'], this.props),
         _react2['default'].createElement(
           'header',
           null,
@@ -156,22 +181,35 @@ var App = (function (_React$Component) {
           processes.filter(function (ps) {
             return ps.pid === window.pid;
           }).map(function (ps) {
-            return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps));
+            return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps, { 'total-memory': _this.props.memory.total }));
           }),
           processes.filter(function (ps) {
             return ps.pid !== window.pid;
           }).filter(function (ps) {
             return ps.state === 'R' || ps.state === 'S';
           }).sort(function (a, b) {
-            if (parseInt(a.mem) > parseInt(b.mem)) {
+            var aMem = parseInt(a.mem);
+            var bMem = parseInt(b.mem);
+
+            if (isNaN(aMem)) {
               return 1;
             }
-            if (parseInt(a.mem) < parseInt(b.mem)) {
+
+            if (isNaN(bMem)) {
               return -1;
             }
+
+            if (aMem > bMem) {
+              return -1;
+            }
+
+            if (aMem < bMem) {
+              return 1;
+            }
+
             return 0;
           }).map(function (ps) {
-            return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps));
+            return _react2['default'].createElement(_processRow2['default'], _extends({ key: ps.pid }, ps, { 'total-memory': _this.props.memory.total }));
           })
         )
       );
@@ -204,6 +242,10 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _progressBar = require('./progress-bar');
+
+var _progressBar2 = _interopRequireDefault(_progressBar);
+
 var ProcessRow = (function (_React$Component) {
   _inherits(ProcessRow, _React$Component);
 
@@ -214,35 +256,13 @@ var ProcessRow = (function (_React$Component) {
   }
 
   _createClass(ProcessRow, [{
-    key: 'memUsed',
-    value: function memUsed(mem) {
-      if (typeof window !== 'undefined' && !isNaN(mem)) {
-        var width = mem / window.totalMem * 100;
-
-        var background = 'transparent';
-
-        if (width > 0 && width < 40) {
-          background = 'green';
-        } else if (width >= 40 && width < 80) {
-          background = 'orange';
-        } else if (width >= 80) {
-          background = 'red';
-        }
-
-        return { width: width + '%', background: background };
-      } else {
-        return { opacity: 0 };
-      }
-    }
-  }, {
     key: 'render',
     value: function render() {
-      var memUsed = this.memUsed(parseInt(this.props.mem));
-      var width = parseInt(memUsed.width);
-      var percent = undefined;
 
-      if (!isNaN(width)) {
-        percent = width.toFixed(2) + '%';
+      var mem = parseInt(this.props.mem);
+
+      if (isNaN(mem)) {
+        mem = 0;
       }
 
       return _react2['default'].createElement(
@@ -250,27 +270,18 @@ var ProcessRow = (function (_React$Component) {
         { className: 'row' },
         _react2['default'].createElement(
           'div',
-          { className: 'column-10' },
+          { className: 'column-pid' },
           this.props.pid
         ),
         _react2['default'].createElement(
           'div',
-          { className: 'column-60' },
+          { className: 'column-cmd' },
           this.props.cmd
         ),
         _react2['default'].createElement(
           'div',
-          { className: 'column-20' },
-          _react2['default'].createElement(
-            'div',
-            { className: 'memory-bar' },
-            _react2['default'].createElement('div', { className: 'memory-used', style: memUsed }),
-            _react2['default'].createElement(
-              'div',
-              { className: 'memory-percent' },
-              percent
-            )
-          )
+          { className: 'column-mem' },
+          _react2['default'].createElement(_progressBar2['default'], { goal: this.props['total-memory'], current: mem })
         )
       );
     }
@@ -281,7 +292,7 @@ var ProcessRow = (function (_React$Component) {
 
 exports['default'] = ProcessRow;
 module.exports = exports['default'];
-},{"react":"/home/francois/Dev/psjs/node_modules/react/react.js"}],"/home/francois/Dev/psjs/dist/components/progress-bar.js":[function(require,module,exports){
+},{"./progress-bar":"/home/francois/Dev/psjs/dist/components/progress-bar.js","react":"/home/francois/Dev/psjs/node_modules/react/react.js"}],"/home/francois/Dev/psjs/dist/components/progress-bar.js":[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -301,8 +312,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
-
-var i = 0;
 
 var ProgressBar = (function (_React$Component) {
   _inherits(ProgressBar, _React$Component);
@@ -334,12 +343,6 @@ var ProgressBar = (function (_React$Component) {
         }
       }
 
-      i++;
-
-      if (i < 10) {
-        console.log({ props: this.props, width: width });
-      }
-
       return _react2['default'].createElement(
         'div',
         { className: 'progress_bar' },
@@ -351,7 +354,7 @@ var ProgressBar = (function (_React$Component) {
         _react2['default'].createElement(
           'div',
           { className: 'progress_bar-label' },
-          width + '%'
+          percent
         )
       );
     }
@@ -390,62 +393,28 @@ var _progressBar2 = _interopRequireDefault(_progressBar);
 var TopBar = (function (_React$Component) {
   _inherits(TopBar, _React$Component);
 
-  function TopBar(props) {
+  function TopBar() {
     _classCallCheck(this, TopBar);
 
-    _get(Object.getPrototypeOf(TopBar.prototype), 'constructor', this).call(this, props);
-
-    this.state = {
-      totalMem: 0,
-      freeMem: 0
-    };
-
-    this.setComponent();
+    _get(Object.getPrototypeOf(TopBar.prototype), 'constructor', this).apply(this, arguments);
   }
 
   _createClass(TopBar, [{
-    key: 'setComponent',
-    value: function setComponent() {
-      var _this = this;
-
-      if (typeof window !== 'undefined') {
-        if (!window.socket) {
-          return this.waitForSocket = window.setInterval(function () {
-            if (window.socket) {
-              window.clearInterval(_this.waitForSocket);
-              _this.setComponent();
-            }
-          }, 1000);
-        }
-
-        if (window.totalMem) {
-          this.setState({ totalMem: window.totalMem });
-        } else {
-          window.socket.on('total mem', function (totalMem) {
-            _this.setState({ totalMem: totalMem });
-          });
-        }
-
-        window.socket.on('free mem', function (freeMem) {
-          _this.setState({ freeMem: freeMem });
-        });
-      }
-    }
-  }, {
     key: 'render',
     value: function render() {
-      var _state = this.state;
-      var totalMem = _state.totalMem;
-      var freeMem = _state.freeMem;
+      var _props = this.props;
+      var memory = _props.memory;
+      var processes = _props.processes;
+      var cpu = _props.cpu;
 
-      var usedMem = totalMem - freeMem;
+      memory.used = memory.total - memory.free;
 
       return _react2['default'].createElement(
         'header',
-        { className: 'top-bar' },
+        { className: 'top-bar row' },
         _react2['default'].createElement(
           'div',
-          { style: { width: '50%', float: 'left' } },
+          null,
           _react2['default'].createElement(
             'h1',
             null,
@@ -453,20 +422,25 @@ var TopBar = (function (_React$Component) {
             _react2['default'].createElement(
               'small',
               null,
-              this.props.processes.length,
+              processes.length,
               ' processes'
             )
           )
         ),
         _react2['default'].createElement(
           'div',
-          { style: { width: '50%', float: 'right', 'text-align': 'right' } },
+          null,
           _react2['default'].createElement(
             'h2',
             null,
-            _react2['default'].createElement(_progressBar2['default'], { goal: totalMem, current: usedMem }),
-            _react2['default'].createElement(_progressBar2['default'], { label: 'CPU (8)', goal: 2500, current: 700 }),
-            _react2['default'].createElement('i', { className: 'fa fa-bar-chart' }),
+            _react2['default'].createElement(
+              'div',
+              { className: 'progress_bar-wrapper' },
+              _react2['default'].createElement(_progressBar2['default'], { goal: memory.total, current: memory.used })
+            ),
+            _react2['default'].createElement(_progressBar2['default'], { goal: 100, current: cpu.load }),
+            _react2['default'].createElement('i', { className: 'fa fa-eye' }),
+            _react2['default'].createElement('input', { type: 'text', placeholder: 'Search', name: 'search' }),
             _react2['default'].createElement('i', { className: 'fa fa-search' })
           )
         )
@@ -479,7 +453,21 @@ var TopBar = (function (_React$Component) {
 
 exports['default'] = TopBar;
 module.exports = exports['default'];
-},{"./progress-bar":"/home/francois/Dev/psjs/dist/components/progress-bar.js","react":"/home/francois/Dev/psjs/node_modules/react/react.js"}],"/home/francois/Dev/psjs/node_modules/react/lib/AutoFocusMixin.js":[function(require,module,exports){
+},{"./progress-bar":"/home/francois/Dev/psjs/dist/components/progress-bar.js","react":"/home/francois/Dev/psjs/node_modules/react/react.js"}],"/home/francois/Dev/psjs/dist/props.js":[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+var props = {
+  memory: { total: 0, free: 0 },
+  processes: [],
+  cpu: { load: 0 }
+};
+
+exports['default'] = props;
+module.exports = exports['default'];
+},{}],"/home/francois/Dev/psjs/node_modules/react/lib/AutoFocusMixin.js":[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.

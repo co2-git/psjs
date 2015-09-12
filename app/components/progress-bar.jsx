@@ -2,8 +2,6 @@
 
 import React from 'react';
 
-let i = 0;
-
 class ProgressBar extends React.Component {
   render () {
     let width = this.props.current / this.props.goal * 100;
@@ -26,12 +24,6 @@ class ProgressBar extends React.Component {
       }
     }
 
-    i ++;
-
-    if ( i < 10 ) {
-      console.log({ props: this.props, width: width });
-    }
-
     return (
       <div className="progress_bar">
         <div
@@ -39,7 +31,7 @@ class ProgressBar extends React.Component {
           style={ {
             width : `${width}%`, background
           }}></div>
-        <div className="progress_bar-label">{ `${width}%` }</div>
+        <div className="progress_bar-label">{ percent }</div>
       </div>
     );
   }

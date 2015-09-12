@@ -4,61 +4,27 @@ import React from 'react';
 import ProgressBar from './progress-bar';
 
 class TopBar extends React.Component {
-  constructor (props) {
-    super(props);
-
-    this.state = {
-      totalMem : 0,
-      freeMem : 0
-    };
-
-    this.setComponent();
-  }
-
-  setComponent () {
-    if ( typeof window !== 'undefined' ) {
-      if ( ! window.socket ) {
-        return this.waitForSocket = window.setInterval(() => {
-          if ( window.socket ) {
-            window.clearInterval(this.waitForSocket);
-            this.setComponent();
-          }
-        }, 1000);
-      }
-
-      if ( window.totalMem ) {
-        this.setState({ totalMem : window.totalMem });
-      }
-      else {
-        window.socket.on('total mem', totalMem => {
-          this.setState({ totalMem });
-        });
-      }
-
-      window.socket.on('free mem', freeMem => {
-        this.setState({ freeMem });
-      });
-    }
-  }
-
   render () {
-    let { totalMem, freeMem } = this.state;
-    let usedMem = totalMem - freeMem;
+    let { memory, processes, cpu } = this.props;
+    memory.used = memory.total - memory.free;
 
     return (
-      <header className="top-bar">
-        <div style={ { width: '50%', float: 'left' }}>
+      <header className="top-bar row">
+        <div>
           <h1>
             PS|JS
-            <small>{ this.props.processes.length } processes</small>
+            <small>{ processes.length } processes</small>
           </h1>
         </div>
-        <div style={ { width: '50%', float: 'right', 'text-align': 'right' }}>
+        <div>
           <h2>
-            <ProgressBar goal={ totalMem } current={ usedMem } />
-            <ProgressBar label="CPU (8)" goal={ 2500 } current={ 700 } />
+            <div className="progress_bar-wrapper">
+              <ProgressBar goal={ memory.total } current={ memory.used } />
+            </div>
+            <ProgressBar goal={ 100 } current={ cpu.load } />
 
-            <i className="fa fa-bar-chart"></i>
+            <i className="fa fa-eye"></i>
+            <input type="text" placeholder="Search" name="search" />
             <i className="fa fa-search"></i>
           </h2>
         </div>
